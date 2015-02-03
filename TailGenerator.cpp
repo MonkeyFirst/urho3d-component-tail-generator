@@ -99,7 +99,7 @@ void TailGenerator::UpdateTail()
 
 	if (path > tailLength_) 
 	{
-		// новая точка пути
+		// РЅРѕРІР°СЏ С‚РѕС‡РєР° РїСѓС‚Рё
 		Tail newPoint;
 		newPoint.position = wordPosition;
 		
@@ -113,8 +113,8 @@ void TailGenerator::UpdateTail()
 		forceUpdateVertexBuffer_ = true;
 		previousPosition_ = wordPosition;
 
-		fullPointPath.Push(newPoint);	// Весь путь, все точки за все время работы компонента.
-		//knots.Push(wordPosition);		// Для сплайна опорные
+		fullPointPath.Push(newPoint);	// Р’РµСЃСЊ РїСѓС‚СЊ, РІСЃРµ С‚РѕС‡РєРё Р·Р° РІСЃРµ РІСЂРµРјСЏ СЂР°Р±РѕС‚С‹ РєРѕРјРїРѕРЅРµРЅС‚Р°.
+		//knots.Push(wordPosition);		// Р”Р»СЏ СЃРїР»Р°Р№РЅР° РѕРїРѕСЂРЅС‹Рµ
 	}
 		
 }
