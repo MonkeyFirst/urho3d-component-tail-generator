@@ -1,5 +1,6 @@
 #pragma once
 
+
 /// Vertex struct for tail  
 struct URHO3D_API TailVertex
 {

@@ -122,10 +122,13 @@ void TailGenerator::UpdateTail()
 void  TailGenerator::DrawDebugGeometry(DebugRenderer *debug, bool depthTest)
 {
 	Drawable::DrawDebugGeometry(debug, depthTest);
+	
+	debug->AddNode(node_);
 
 	for (unsigned i = 0; i < tails_.Size()-1; i++)
 	{
 		debug->AddLine(tails_[i].position, tails_[i+1].position, Color(1,1,1).ToUInt(), false );
+		
 	}
 
 }
@@ -153,11 +156,8 @@ void TailGenerator::UpdateGeometry(const FrameInfo& frame)
 	if (bufferSizeDirty_ || indexBuffer_[0]->IsDataLost() || indexBuffer_[1]->IsDataLost())
 		UpdateBufferSize();
 
-	if (bufferDirty_ || vertexBuffer_[0]->IsDataLost() || vertexBuffer_[1]->IsDataLost())
+	if (bufferDirty_ || vertexBuffer_[0]->IsDataLost() || vertexBuffer_[1]->IsDataLost() || forceUpdateVertexBuffer_)
 		UpdateVertexBuffer(frame);
-
-	if (forceUpdateVertexBuffer_)
-		UpdateVertexBuffer(frame);	
 }
 
 UpdateGeometryType TailGenerator::GetUpdateGeometryType()
@@ -196,7 +196,10 @@ void TailGenerator::OnWorldBoundingBoxUpdate()
 /// Resize TailGenerator vertex and index buffers.
 void TailGenerator::UpdateBufferSize() 
 {
-	unsigned numTails = tails_.Size();
+	unsigned numTails = tailNum_;
+
+	if (!numTails)
+		return;
 
 	if (vertexBuffer_[0]->GetVertexCount() != (numTails * 2) )
 	{
@@ -212,11 +215,6 @@ void TailGenerator::UpdateBufferSize()
 
 	bufferSizeDirty_ = false;
 	bufferDirty_ = true;
-	//forceUpdate_ = true;
-
-	if (!numTails)
-		return;
-
 
 	// Indices do not change for a given tail generator capacity
 	unsigned short* dest = (unsigned short*)indexBuffer_[0]->Lock(0, (numTails * 2), true);
@@ -366,13 +364,10 @@ void TailGenerator::UpdateVertexBuffer(const FrameInfo& frame)
 	vertexBuffer_[1]->Unlock();
 	vertexBuffer_[1]->ClearDataLost();
 
-
 	bufferDirty_ = false;
-
 
 	// unmark flag
 	forceUpdateVertexBuffer_ = false;
-
 }
 
 
@@ -403,19 +398,8 @@ void TailGenerator::SetNumTails(unsigned num)
 	if (num > M_MAX_INT)
 		num = 0;
 
-	if (num % 2 != 0) num += 1;
-
 	if (num > MAX_TAILS)
 		num = MAX_TAILS;
-
-	unsigned oldNum = tails_.Size();
-	tails_.Resize(num);
-
-	// Set default values to new tails
-	for (unsigned i = oldNum; i < num; ++i)
-	{
-		tails_[i].position = Vector3::ZERO;
-	}
 
 	bufferSizeDirty_ = true;
 	tailNum_ = num;
@@ -423,7 +407,7 @@ void TailGenerator::SetNumTails(unsigned num)
 
 unsigned TailGenerator::GetNumTails() 
 {
-	return tails_.Size();
+	return tailNum_;
 }
 
 void TailGenerator::MarkPositionsDirty()
