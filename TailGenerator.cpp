@@ -16,7 +16,7 @@ extern const char* GEOMETRY_CATEGORY;
 TailGenerator::TailGenerator(Context* context) : 
 				Drawable(context, DRAWABLE_GEOMETRY)
 {
-
+ // one-batch test commit
 	geometry_[0] = (new Geometry(context));
 	vertexBuffer_[0] = (new VertexBuffer(context));
 	indexBuffer_[0] = (new IndexBuffer(context));
