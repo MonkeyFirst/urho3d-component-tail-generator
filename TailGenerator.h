@@ -68,6 +68,19 @@ public:
 	void SetMaterialAttr(const ResourceRef& value);
 	/// Return material attribute.
 	ResourceRef GetMaterialAttr() const;
+    
+    /// Get whether to draw the vertical strip or not
+    bool GetDrawVertical() const { return vertical_; }
+    /// Get whether to draw the horizontal strip or not
+    bool GetDrawHorizontal() const { return horizontal_; }
+    /// Get whether or not this tail is matching node direction vectors
+    bool GetMatchNodeOrientation() const { return matchNode_; }
+    /// Set whether to draw the vertical strip or not
+    void SetDrawVertical(bool value);
+    /// Set whether to draw the horizontal strip or not
+    void SetDrawHorizontal(bool value);
+    /// Set whether or not this tail is matching node direction vectors
+    void SetMatchNodeOrientation(bool value);
 
 
 protected:
@@ -90,11 +103,11 @@ private:
 	void UpdateVertexBuffer(const FrameInfo& frame);
 
 	/// Geometry.
-	SharedPtr<Geometry> geometry_[2];
-	/// Vertex buffer.
-	SharedPtr<VertexBuffer> vertexBuffer_[2];
-	/// Index buffer.
-	SharedPtr<IndexBuffer> indexBuffer_[2];
+    SharedPtr<Geometry> geometry_;
+    /// Vertex buffer.
+    SharedPtr<VertexBuffer> vertexBuffer_;
+    /// Index buffer.
+    SharedPtr<IndexBuffer> indexBuffer_;
 	/// Transform matrices for position and billboard orientation.
 	Matrix3x4 transforms_[2];
 
@@ -111,7 +124,7 @@ private:
 
 	bool forceUpdateVertexBuffer_;
 
-	Vector<TailVertex> tailMesh[2];
+	Vector<TailVertex> tailMesh;
 	Vector<Tail> activeTails;
 
 	Color tailTipColor;
