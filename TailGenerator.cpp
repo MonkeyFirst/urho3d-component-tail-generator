@@ -172,7 +172,6 @@ UpdateGeometryType TailGenerator::GetUpdateGeometryType()
 void TailGenerator::SetMaterial(Material* material)
 {
 	batches_[0].material_ = material;
-	batches_[1].material_ = material;
 
 	MarkNetworkUpdate();
 }
