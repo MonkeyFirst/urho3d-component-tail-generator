@@ -3,6 +3,7 @@ Tail generator component for Urho3d engine
 
 Using:
 
+```
 #include "TailGenerator.h"
 
 void Game::Start()
@@ -23,4 +24,4 @@ void Game::CreateScene()
     tailGen->SetColorForHead(Color(1.0f, 1.0f, 1.0f));
     tailGen->SetColorForTip(Color(0.0f, 0.0f, 1.0f));
 }
-
+```
