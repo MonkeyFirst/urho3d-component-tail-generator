@@ -1,28 +1,28 @@
 #include "TailGenerator.h"
 
-
-extern const char* GEOMETRY_CATEGORY;
-
-
 TailGenerator::TailGenerator(Context* context) : 
                 Drawable(context, DRAWABLE_GEOMETRY)
 {
 
     matchNode_ = false;
 
-    geometry_ = (new Geometry(context));
-    vertexBuffer_ = (new VertexBuffer(context));
-    indexBuffer_ = (new IndexBuffer(context));
+    geometry_ = SharedPtr<Geometry>(new Geometry(context));
+	vertexBuffer_ = SharedPtr<VertexBuffer>(new VertexBuffer(context));
+	indexBuffer_ = SharedPtr<IndexBuffer>(new IndexBuffer(context));
 
     geometry_->SetVertexBuffer(0, vertexBuffer_, MASK_POSITION | MASK_COLOR | MASK_TEXCOORD1);
     geometry_->SetIndexBuffer(indexBuffer_);
 
     indexBuffer_->SetShadowed(false);
-
+	
+	transforms_[0] = Matrix3x4::IDENTITY;
+	transforms_[1] = Matrix3x4(Vector3::ZERO, Quaternion(0, 0, 0), Vector3::ONE);
+	
     batches_.Resize(1);
     batches_[0].geometry_ = geometry_;
     batches_[0].geometryType_ = GEOM_BILLBOARD;
     batches_[0].worldTransform_ = &transforms_[0];
+	batches_[0].numWorldTransforms_ = 2;
 
     forceUpdateVertexBuffer_ = false;
     previousPosition_ = Vector3::ZERO;
@@ -52,18 +52,17 @@ void TailGenerator::RegisterObject(Context* context)
 {
     context->RegisterFactory<TailGenerator>();
 
-    COPY_BASE_ATTRIBUTES(Drawable);
-    MIXED_ACCESSOR_ATTRIBUTE("Material", GetMaterialAttr, SetMaterialAttr, ResourceRef, ResourceRef(Material::GetTypeStatic()), AM_DEFAULT);
-    ACCESSOR_ATTRIBUTE("Segments", GetNumTails, SetNumTails, unsigned int, 10, AM_DEFAULT);
-    ACCESSOR_ATTRIBUTE("Length", GetTailLength, SetTailLength, float, 0.25f, AM_DEFAULT);
-    ACCESSOR_ATTRIBUTE("Width", GetWidthScale, SetWidthScale, float, 1.0f, AM_DEFAULT);
-    ACCESSOR_ATTRIBUTE("Start Color", GetColorForHead, SetColorForHead, Color, Color::WHITE, AM_DEFAULT);
-    ACCESSOR_ATTRIBUTE("End Color", GetColorForTip, SetColorForTip, Color, Color::WHITE, AM_DEFAULT);
-    ACCESSOR_ATTRIBUTE("Draw Vertical", GetDrawVertical, SetDrawVertical, bool, true, AM_DEFAULT);
-    ACCESSOR_ATTRIBUTE("Draw Horizontal", GetDrawHorizontal, SetDrawHorizontal, bool, true, AM_DEFAULT);
-    ACCESSOR_ATTRIBUTE("Match Node Rotation", GetMatchNodeOrientation, SetMatchNodeOrientation, bool, false, AM_DEFAULT);
+    URHO3D_COPY_BASE_ATTRIBUTES(Drawable);
+	URHO3D_MIXED_ACCESSOR_ATTRIBUTE("Material", GetMaterialAttr, SetMaterialAttr, ResourceRef, ResourceRef(Material::GetTypeStatic()), AM_DEFAULT);
+	URHO3D_ACCESSOR_ATTRIBUTE("Segments", GetNumTails, SetNumTails, unsigned int, 10, AM_DEFAULT);
+	URHO3D_ACCESSOR_ATTRIBUTE("Length", GetTailLength, SetTailLength, float, 0.25f, AM_DEFAULT);
+	URHO3D_ACCESSOR_ATTRIBUTE("Width", GetWidthScale, SetWidthScale, float, 1.0f, AM_DEFAULT);
+	URHO3D_ACCESSOR_ATTRIBUTE("Start Color", GetColorForHead, SetColorForHead, Color, Color::WHITE, AM_DEFAULT);
+	URHO3D_ACCESSOR_ATTRIBUTE("End Color", GetColorForTip, SetColorForTip, Color, Color::WHITE, AM_DEFAULT);
+	URHO3D_ACCESSOR_ATTRIBUTE("Draw Vertical", GetDrawVertical, SetDrawVertical, bool, true, AM_DEFAULT);
+	URHO3D_ACCESSOR_ATTRIBUTE("Draw Horizontal", GetDrawHorizontal, SetDrawHorizontal, bool, true, AM_DEFAULT);
+	URHO3D_ACCESSOR_ATTRIBUTE("Match Node Rotation", GetMatchNodeOrientation, SetMatchNodeOrientation, bool, false, AM_DEFAULT);
 }
-
 
 void TailGenerator::ProcessRayQuery(const RayOctreeQuery& query, PODVector<RayQueryResult>& results)
 {
@@ -75,18 +74,13 @@ void TailGenerator::ProcessRayQuery(const RayOctreeQuery& query, PODVector<RayQu
     }
 }
 
-
-
 void TailGenerator::Update(const FrameInfo &frame)
 {
-    Drawable::Update(frame);
-    UpdateTail();
+	Drawable::Update(frame);
 }
 
 void TailGenerator::UpdateTail()
 {
-    //Drawable::Update(frame);
-
     Vector3 wordPosition = node_->GetWorldPosition();
     float path = (previousPosition_ - wordPosition).Length();
 
@@ -105,11 +99,9 @@ void TailGenerator::UpdateTail()
         //forceBuildMeshInWorkerThread_ = true;
         forceUpdateVertexBuffer_ = true;
         previousPosition_ = wordPosition;
-
         fullPointPath.Push(newPoint);    // Весь путь, все точки за все время работы компонента.
         //knots.Push(wordPosition);        // Для сплайна опорные
     }
-        
 }
 
 void  TailGenerator::DrawDebugGeometry(DebugRenderer *debug, bool depthTest)
@@ -120,25 +112,25 @@ void  TailGenerator::DrawDebugGeometry(DebugRenderer *debug, bool depthTest)
 
     for (unsigned i = 0; i < tails_.Size()-1; i++)
     {
-        debug->AddLine(tails_[i].position, tails_[i+1].position, Color(1,1,1).ToUInt(), false );
-        
+        debug->AddLine(tails_[i].position, tails_[i+1].position, Color(1,1,1).ToUInt(), false );      
     }
-
 }
-
 
 void TailGenerator::UpdateBatches(const FrameInfo& frame) 
 {
+	// Update tail's mesh if needed
+	UpdateTail(); 
 
+	// Update information for renderer about this drawable 
     distance_ = frame.camera_->GetDistance(GetWorldBoundingBox().Center());
-
     batches_[0].distance_ = distance_;
-    batches_[0].numWorldTransforms_ = 2;
+
+    //batches_[0].numWorldTransforms_ = 2;
 
     // TailGenerator positioning
-    transforms_[0] = Matrix3x4::IDENTITY;
+    //transforms_[0] = Matrix3x4::IDENTITY;
     // TailGenerator rotation
-    transforms_[1] = Matrix3x4(Vector3::ZERO, Quaternion(0, 0, 0), Vector3::ONE);
+    //transforms_[1] = Matrix3x4(Vector3::ZERO, Quaternion(0, 0, 0), Vector3::ONE);
 }
 
 void TailGenerator::UpdateGeometry(const FrameInfo& frame)
@@ -151,19 +143,16 @@ void TailGenerator::UpdateGeometry(const FrameInfo& frame)
 }
 
 UpdateGeometryType TailGenerator::GetUpdateGeometryType()
-{
-    if (bufferDirty_ || bufferSizeDirty_ || vertexBuffer_[0].IsDataLost() || indexBuffer_[0].IsDataLost() || 
-        vertexBuffer_[1].IsDataLost() || indexBuffer_[1].IsDataLost() || forceUpdateVertexBuffer_)
+{	
+    if (bufferDirty_ || bufferSizeDirty_ || vertexBuffer_->IsDataLost() || indexBuffer_->IsDataLost()|| forceUpdateVertexBuffer_)
         return UPDATE_MAIN_THREAD;
     else
         return UPDATE_NONE;
-
 }
 
 void TailGenerator::SetMaterial(Material* material)
 {
     batches_[0].material_ = material;
-
     MarkNetworkUpdate();
 }
 
@@ -174,7 +163,6 @@ void TailGenerator::OnNodeSet(Node* node)
 
 void TailGenerator::OnWorldBoundingBoxUpdate() 
 {
-
     //worldBoundingBox_.Define(-M_LARGE_VALUE, M_LARGE_VALUE);
     worldBoundingBox_.Merge(bbmin);
     worldBoundingBox_.Merge(bbmax);
@@ -437,4 +425,3 @@ void TailGenerator::SetWidthScale(float scale)
 {
     scale_ = scale;
 }
-

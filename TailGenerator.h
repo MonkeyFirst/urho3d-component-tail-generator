@@ -1,6 +1,4 @@
 #pragma once
-
-
 #include <Urho3D/Core/Context.h>
 #include <Urho3D/Scene/Node.h>
 #include <Urho3D/Resource/ResourceCache.h>
@@ -13,9 +11,7 @@
 #include <Urho3D/Graphics/Camera.h>
 #include <Urho3D/Graphics/Material.h>
 
-
 using namespace Urho3D;
-
 
 /// Vertex struct for tail  
 struct URHO3D_API TailVertex
@@ -39,8 +35,7 @@ static const unsigned MAX_TAILS = 65536 / 6;
 /// Custom component that creates a tail
 class URHO3D_API TailGenerator : public Drawable
 {
-    OBJECT(TailGenerator);
-
+	URHO3D_OBJECT(TailGenerator, Drawable);
 public:
     /// Construct.
     TailGenerator(Context* context);
@@ -48,13 +43,10 @@ public:
     virtual ~TailGenerator();
     /// Register object factory.
     static void RegisterObject(Context* context);
-
     /// Process octree raycast. May be called from a worker thread.
     virtual void ProcessRayQuery(const RayOctreeQuery& query, PODVector<RayQueryResult>& results);
-    
-    void UpdateTail();
+    ///
     virtual void Update(const FrameInfo &frame);
-
     /// Calculate distance and prepare batches for rendering. May be called from worker thread(s), possibly re-entrantly.
     virtual void UpdateBatches(const FrameInfo& frame);
     /// Prepare geometry for rendering. Called from a worker thread if possible (no GPU update.)
@@ -97,7 +89,7 @@ public:
     void SetDrawHorizontal(bool value);
     /// Set whether or not this tail is matching node direction vectors
     void SetMatchNodeOrientation(bool value);
-
+	///
     float GetWidthScale() const { return scale_; }
     unsigned  GetNumTails() const { return tailNum_; }
     float GetTailLength() const { return tailLength_;  }
@@ -109,10 +101,8 @@ protected:
     virtual void OnNodeSet(Node* node);
     /// Recalculate the world-space bounding box.
     virtual void OnWorldBoundingBoxUpdate();
-
     /// Mark vertex buffer to need an update.
     void MarkPositionsDirty();
-
     /// Tails.
     PODVector<Tail> tails_;
     PODVector<Tail> fullPointPath;
@@ -122,39 +112,46 @@ private:
     void UpdateBufferSize();
     /// Rewrite TailGenerator vertex buffer.
     void UpdateVertexBuffer(const FrameInfo& frame);
-
+	/// Update/Rebuild tail mesh only if position changed (called by UpdateBatches())
+	void UpdateTail();
     /// Geometry.
     SharedPtr<Geometry> geometry_;
     /// Vertex buffer.
     SharedPtr<VertexBuffer> vertexBuffer_;
     /// Index buffer.
     SharedPtr<IndexBuffer> indexBuffer_;
-    /// Transform matrices for position and billboard orientation.
+    /// Transform matrices for position and orientation.
     Matrix3x4 transforms_[2];
-
     /// Buffers need resize flag.
     bool bufferSizeDirty_;
     /// Vertex buffer needs rewrite flag.
     bool bufferDirty_;
-
+	///
+	bool forceUpdateVertexBuffer_;
+	///
+	bool vertical_;
+	///
+	bool matchNode_;
+	///
+	bool horizontal_;
     /// Previous position of tail
     Vector3 previousPosition_;
-    float tailLength_;
-    unsigned tailNum_;
-    float scale_;
-
-    bool forceUpdateVertexBuffer_;
-
+    ///
+	float tailLength_;
+    ///
+	float scale_;
+	///
+	unsigned tailNum_;
+	///
     Vector<TailVertex> tailMesh;
-    Vector<Tail> activeTails;
-
+    ///
+	Vector<Tail> activeTails;
+	///
+	Vector3 bbmin;
+	///
+	Vector3 bbmax;
+	///
     Color tailTipColor;
-    Color tailHeadColor;
-
-    Vector3 bbmin;
-    Vector3 bbmax;
-
-    bool vertical_;
-    bool matchNode_;
-    bool horizontal_;
+    ///
+	Color tailHeadColor;
 };
