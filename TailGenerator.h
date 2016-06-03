@@ -104,7 +104,6 @@ protected:
     /// Mark vertex buffer to need an update.
     void MarkPositionsDirty();
     /// Tails.
-    PODVector<Tail> tails_;
     PODVector<Tail> fullPointPath;
 
 private:

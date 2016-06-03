@@ -3,7 +3,6 @@
 TailGenerator::TailGenerator(Context* context) :
                 Drawable(context, DRAWABLE_GEOMETRY)
 {
-
     matchNode_ = false;
 
     geometry_ = SharedPtr<Geometry>(new Geometry(context));
@@ -112,9 +111,9 @@ void  TailGenerator::DrawDebugGeometry(DebugRenderer *debug, bool depthTest)
 
     debug->AddNode(node_);
 
-    for (unsigned i = 0; i < tails_.Size()-1; i++)
+    for (unsigned i = 0; i < fullPointPath.Size()-1; i++)
     {
-        debug->AddLine(tails_[i].position, tails_[i+1].position, Color(1,1,1).ToUInt(), false);
+        debug->AddLine(fullPointPath[i].position, fullPointPath[i+1].position, Color(1,0,0).ToUInt(), false);
     }
 }
 
