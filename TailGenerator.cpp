@@ -100,6 +100,9 @@ void TailGenerator::UpdateTail()
         previousPosition_ = wordPosition;
         fullPointPath.Push(newPoint);    // Весь путь, все точки за все время работы компонента.
         //knots.Push(wordPosition);        // Для сплайна опорные
+
+        if (fullPointPath.Size() > tailNum_)
+            fullPointPath.Erase(0, fullPointPath.Size() - tailNum_);
     }
 }
 
