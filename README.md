@@ -20,7 +20,7 @@ void Game::CreateScene()
     TailGenerator* tailGen = tailNode->CreateComponent<TailGenerator>();
     tailGen->SetTailLength(0.1f); // set segment length
     tailGen->SetNumTails(50);     // set num of segments
-    tailGen->SetWidthScale(4.0f); // side scale
+    tailGen->SetWidthScale(0.5f); // side scale
     tailGen->SetColorForHead(Color(1.0f, 1.0f, 1.0f));
     tailGen->SetColorForTip(Color(0.0f, 0.0f, 1.0f));
 }
